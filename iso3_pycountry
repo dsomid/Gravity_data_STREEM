@@ -1,0 +1,125 @@
+import pandas as pd
+import pycountry
+
+# Load your data (adjust the path to your file)
+df = pd.read_excel("/Users/omid/Desktop/School/Thesis_STREEM/Data/Merged/world_exp_imp.xlsx")
+
+# Function to get ISO3 code from country name
+def get_iso3(country_name):
+    try:
+        # Normalize the country name for better matching
+        country_name = country_name.replace('Rep. of', '').replace('The', '').replace('Kingdom of', '').strip()
+        country = pycountry.countries.search_fuzzy(country_name)[0]
+        return country.alpha_3
+    except (LookupError, IndexError):
+        return None  # Return None if no match is found
+
+# Apply the function to get ISO3 codes for Counterpart Country Name (iso3_d)
+df['iso3_d'] = df['Counterpart Country Name'].apply(get_iso3)
+
+# Check for unmapped countries
+unmapped_d = df[df['iso3_d'].isna()]['Counterpart Country Name'].unique()
+print("Unmapped destination countries:", unmapped_d)
+
+# Manual fallback mapping for unmapped countries
+manual_mapping = {
+    'Netherlands, The': 'NLD',
+    'Dominican Rep.': 'DOM',
+    'Bahamas, The': 'BHS',
+    'Aruba, Kingdom of the Netherlands': 'ABW',
+    'Netherlands Antilles': 'ANT',
+    'Curaçao, Kingdom of the Netherlands': 'CUW',
+    'St. Kitts and Nevis': 'KNA',
+    'St. Lucia': 'LCA',
+    'St. Vincent and the Grenadines': 'VCT',
+    'Bahrain, Kingdom of': 'BHR',
+    'Syrian Arab Rep.': 'SYR',
+    'Egypt, Arab Rep. of': 'EGY',
+    'Afghanistan, Islamic Rep. of': 'AFG',
+    'West Bank and Gaza': 'PSE',
+    'Taiwan Province of China': 'TWN',
+    'Malaysia, West': 'MYS',  # Assuming West Malaysia uses MYS (Malaysia)
+    'Palau, Rep. of': 'PLW',
+    'Central African Rep.': 'CAF',
+    'Comoros, Union of the': 'COM',
+    'Congo, Dem. Rep. of the': 'COD',
+    'Equatorial Guinea, Rep. of': 'GNQ',
+    'Eritrea, The State of': 'ERI',
+    'Gambia, The': 'GMB',
+    'Madagascar, Rep. of': 'MDG',
+    'Mozambique, Rep. of': 'MOZ',
+    'São Tomé and Príncipe, Dem. Rep. of': 'STP',
+    'Fiji, Rep. of': 'FJI',
+    'Nauru, Rep. of': 'NRU',
+    'Marshall Islands, Rep. of the': 'MHL',
+    'Armenia, Rep. of': 'ARM',
+    'Azerbaijan, Rep. of': 'AZE',
+    'Belarus, Rep. of': 'BLR',
+    'Kazakhstan, Rep. of': 'KAZ',
+    'Kyrgyz Rep.': 'KGZ',
+    'Tajikistan, Rep. of': 'TJK',
+    'Uzbekistan, Rep. of': 'UZB',
+    'Slovak Rep.': 'SVK',
+    'Czechoslovakia': 'CSK',  # Historical code
+    'Czech Rep.': 'CZE',
+    'Eastern Germany': 'DDR',  # Historical code for East Germany
+    'Estonia, Rep. of': 'EST',
+    'Croatia, Rep. of': 'HRV',
+    'Slovenia, Rep. of': 'SVN',
+    'Korea, Dem. People\'s Rep. of': 'PRK',  # Fixed with escaped single quote
+    'North Macedonia, Republic of': 'MKD',
+    'Poland, Rep. of': 'POL',
+    'Serbia and Montenegro': 'SCG',  # Historical code
+    'Kosovo, Rep. of': 'XKX',
+    'Belgium-Luxembourg': 'BLX',
+    'San Marino, Rep. of': 'SMR',
+    'Türkiye, Rep of': 'TUR',
+    'Yugoslavia': 'YUG',
+    'Venezuela, Rep. Bolivariana de': 'VEN',
+    'Western Hemisphere not specified': 'XWH',
+    'Yemen, People\'s Dem. Rep. of': 'YEM',
+    'Yemen Arab Rep.': 'YEM',
+    'Yemen, Rep. of': 'YEM',
+    'Middle East and Central Asia not specified': 'XME',
+    'China, P.R.: Hong Kong': 'HKG',
+    'Timor-Leste, Dem. Rep. of': 'TLS',
+    'Lao People\'s Dem. Rep.': 'LAO',
+    'China, P.R.: Macao': 'MAC',
+    'Asia not specified': 'XAS',
+    'Africa not specified': 'XAF',
+    'Ethiopia, The Federal Dem. Rep. of': 'ETH',
+    'Lesotho, Kingdom of': 'LSO',
+    'Mauritania, Islamic Rep. of': 'MRT',
+    'South Sudan, Rep. of': 'SSD',
+    'Eswatini, Kingdom of': 'SWZ',
+    'Europe not specified': 'XEU',
+    'Countries & Areas not specified': 'XZZ',
+    'Special Categories': 'XSC',
+    'World': 'WLD',
+    'Emerging Market and Developing Economies by Source of Export Earnings: Fuel': 'XFU',
+    'USSR': 'SUN',
+    'Emerging Market and Developing Economies by Source of Export Earnings: Nonfuel': 'XNF',
+    'Advanced Economies': 'XAD',
+    'Western Hemisphere': 'WHI',
+    'Emerging and Developing Economies': 'XDD',
+    'Emerging and Developing Asia': 'XDA',
+    'Sub-Saharan Africa': 'SSA',
+    'Middle East': 'MEA',
+    'Other Countries not included elsewhere': 'XOT',
+    'European Union': 'EUU',
+    'Emerging and Developing Europe': 'XDE',
+    'Sint Maarten, Kingdom of the Netherlands': 'SXM',
+    'Euro Area': 'EMU',
+    'Middle East and Central Asia': 'MCA',
+    'Serbia, Rep. of': 'SRB',
+    'China, P.R.: Mainland': 'CHN'
+}
+
+# Fill unmapped ISO3 codes with manual mapping
+df['iso3_d'] = df.apply(lambda row: manual_mapping.get(row['Counterpart Country Name'], row['iso3_d']), axis=1)
+
+# Save the updated DataFrame
+df.to_excel("/Users/omid/Desktop/School/Thesis_STREEM/Data/Merged/world_exp_imp1.xlsx", index=False)
+
+# Display the result (first few rows)
+print(df.head())
